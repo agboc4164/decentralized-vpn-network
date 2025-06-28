@@ -378,3 +378,92 @@
     (ok new-rate)
   )
 )
+
+;; ADD THESE FUNCTIONS TO YOUR EXISTING CONTRACT
+;; (Add them before the last closing parenthesis)
+
+;; Enhanced Node Management Functions
+
+;; Toggle node active status
+(define-public (toggle-node-status (node-id uint))
+  (let (
+    (node-info (unwrap! (map-get? vpn-nodes { node-id: node-id }) ERR_NOT_FOUND))
+  )
+    (asserts! (var-get contract-enabled) ERR_UNAUTHORIZED)
+    (asserts! (is-eq tx-sender (get owner node-info)) ERR_UNAUTHORIZED)
+    
+    (map-set vpn-nodes
+      { node-id: node-id }
+      (merge node-info {
+        is-active: (not (get is-active node-info))
+      })
+    )
+    
+    (ok (not (get is-active node-info)))
+  )
+)
+
+;; Update node bandwidth
+(define-public (update-node-bandwidth (node-id uint) (new-bandwidth uint))
+  (let (
+    (node-info (unwrap! (map-get? vpn-nodes { node-id: node-id }) ERR_NOT_FOUND))
+  )
+    (asserts! (var-get contract-enabled) ERR_UNAUTHORIZED)
+    (asserts! (is-eq tx-sender (get owner node-info)) ERR_UNAUTHORIZED)
+    (asserts! (> new-bandwidth u0) ERR_INVALID_PARAMETERS)
+    
+    (map-set vpn-nodes
+      { node-id: node-id }
+      (merge node-info {
+        bandwidth: new-bandwidth
+      })
+    )
+    
+    (ok new-bandwidth)
+  )
+)
+
+;; Get active nodes count
+(define-read-only (get-active-nodes-count)
+  (let (
+    (total-nodes (- (var-get next-node-id) u1))
+  )
+    ;; This is a simplified version - in production you'd iterate through nodes
+    total-nodes
+  )
+)
+
+;; Get node performance metrics
+(define-read-only (get-node-performance (node-id uint))
+  (let (
+    (node-info (unwrap! (map-get? vpn-nodes { node-id: node-id }) ERR_NOT_FOUND))
+    (earnings-info (default-to { total-earned: u0, pending-withdrawal: u0, last-payout: u0 }
+                               (map-get? node-earnings { node-id: node-id })))
+  )
+    (ok {
+      total-sessions: (get total-sessions node-info),
+      reputation-score: (get reputation-score node-info),
+      total-earned: (get total-earned earnings-info),
+      is-active: (get is-active node-info),
+      bandwidth: (get bandwidth node-info)
+    })
+  )
+)
+
+;; Emergency pause for specific node (admin only)
+(define-public (emergency-pause-node (node-id uint))
+  (let (
+    (node-info (unwrap! (map-get? vpn-nodes { node-id: node-id }) ERR_NOT_FOUND))
+  )
+    (asserts! (is-contract-owner) ERR_UNAUTHORIZED)
+    
+    (map-set vpn-nodes
+      { node-id: node-id }
+      (merge node-info {
+        is-active: false
+      })
+    )
+    
+    (ok true)
+  )
+)
