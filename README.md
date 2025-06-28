@@ -31,6 +31,22 @@ A trustless VPN service marketplace built on the Stacks blockchain using Clarity
 
 This contract is built using Clarinet for local development and testing.
 
+
+## Recent Updates
+
+### Enhanced Node Management (v1.1.0)
+- `toggle-node-status`: Node owners can activate/deactivate their nodes
+- `update-node-bandwidth`: Update bandwidth specifications
+- `get-active-nodes-count`: Query total active nodes
+- `get-node-performance`: Retrieve comprehensive node metrics
+- `emergency-pause-node`: Admin emergency controls
+
+### Improved Features
+- Better node management capabilities
+- Performance monitoring
+- Enhanced admin controls
+- Comprehensive metrics tracking
+
 ### Testing
 ```bash
 clarinet test
